@@ -438,6 +438,9 @@ public class TransactionExecutor {
             track.addBalance(coinbase, summaryFee);
         }
 
+        DataWord coinbaseDW = new DataWord(coinbase);
+        touchedAccounts.add(coinbaseDW);
+
         this.paidFees = summaryFee.longValue();
 
         if (result != null) {
