@@ -81,23 +81,24 @@ public class Program {
     //Max size for stack checks
     private static final int MAX_STACKSIZE = 1024;
 
+    private static Boolean useDataWordPool = true;
+
+    private final ProgramInvoke invoke;
+    private final ProgramInvokeFactory programInvokeFactory = new ProgramInvokeFactoryImpl();
+    private final ProgramTraceListener traceListener = new ProgramTraceListener();
+    private final CompositeProgramListener programListener = new CompositeProgramListener();
+    private final Stack stack;
+    private final Memory memory;
+    private final Storage storage;
+    private final ProgramResult result = new ProgramResult();
+    private final boolean isLogEnabled;
+    private final boolean isGasLogEnabled;
+
     private Transaction transaction;
-
-    private ProgramInvoke invoke;
-    private ProgramInvokeFactory programInvokeFactory = new ProgramInvokeFactoryImpl();
-
     private ProgramOutListener listener;
-    private ProgramTraceListener traceListener = new ProgramTraceListener();
-    private CompositeProgramListener programListener = new CompositeProgramListener();
-
-    private Stack stack;
-    private Memory memory;
-    private Storage storage;
-
-    private ProgramResult result = new ProgramResult();
     private ProgramTrace trace = new ProgramTrace();
 
-    private byte[] ops;
+    private final byte[] ops;
     private int pc;
     private byte lastOp;
     private byte previouslyExecutedOp;
@@ -169,12 +170,7 @@ public class Program {
      * performed. Until that moment, dataWordPool is enabled by setting useDataWordPool=true
      *
      *******************************************************************************************************************/
-    private java.util.Stack<DataWord> dataWordPool;
-
-    private static Boolean useDataWordPool = true;
-
-    boolean isLogEnabled;
-    boolean isGasLogEnabled;
+    private final java.util.Stack<DataWord> dataWordPool;
 
     public Program(byte[] ops, ProgramInvoke programInvoke) {
         isLogEnabled = logger.isInfoEnabled();
