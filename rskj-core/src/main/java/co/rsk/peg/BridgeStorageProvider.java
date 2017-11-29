@@ -32,6 +32,7 @@ import org.spongycastle.util.encoders.Hex;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.SortedMap;
@@ -52,6 +53,7 @@ public class BridgeStorageProvider {
     private static final String BRIDGE_RETIRING_FEDERATION_KEY = "bridgeRetiringFederation";
     private static final String BRIDGE_PENDING_FEDERATION_KEY = "bridgePendingFederation";
     private static final String BRIDGE_FEDERATION_ELECTION_KEY = "bridgeFederationElection";
+    private static final String LOCK_WHITELIST_KEY = "lockWhitelist";
 
     private static final NetworkParameters networkParameters = RskSystemProperties.CONFIG.getBlockchainConfig().getCommonConstants().getBridgeConstants().getBtcParams();
 
@@ -77,6 +79,8 @@ public class BridgeStorageProvider {
     private boolean shouldSavePendingFederation = false;
 
     private ABICallElection federationElection;
+
+    private LockWhitelist lockWhitelist;
 
     private BridgeConstants bridgeConstants;
     private Context btcContext;
@@ -331,7 +335,7 @@ public class BridgeStorageProvider {
         repository.addStorageBytes(Hex.decode(contractAddress), address, data);
     }
 
-    public ABICallElection getFederationElection(ABICallAuthorizer authorizer) {
+    public ABICallElection getFederationElection(AddressBasedAuthorizer authorizer) {
         if (federationElection != null)
             return federationElection;
 
@@ -349,6 +353,38 @@ public class BridgeStorageProvider {
         return federationElection;
     }
 
+    /**
+     * Save the lock whitelist
+     */
+    public void saveLockWhitelist() {
+        if (lockWhitelist == null)
+            return;
+
+        DataWord address = new DataWord(LOCK_WHITELIST_KEY.getBytes(StandardCharsets.UTF_8));
+
+        byte[] data = BridgeSerializationUtils.serializeLockWhitelist(lockWhitelist);
+
+        repository.addStorageBytes(Hex.decode(contractAddress), address, data);
+    }
+
+    public LockWhitelist getLockWhitelist() {
+        if (lockWhitelist != null)
+            return lockWhitelist;
+
+        DataWord address = new DataWord(LOCK_WHITELIST_KEY.getBytes(StandardCharsets.UTF_8));
+
+        byte[] data = repository.getStorageBytes(Hex.decode(contractAddress), address);
+
+        if (data == null) {
+            lockWhitelist = new LockWhitelist(Collections.emptyList());
+            return lockWhitelist;
+        }
+
+        lockWhitelist = BridgeSerializationUtils.deserializeLockWhitelist(data, btcContext.getParams());
+
+        return lockWhitelist;
+    }
+
     public void save() throws IOException {
         saveBtcTxHashesAlreadyProcessed();
 
@@ -364,5 +400,7 @@ public class BridgeStorageProvider {
         savePendingFederation();
 
         saveFederationElection();
+
+        saveLockWhitelist();
     }
 }
