@@ -348,8 +348,8 @@ public class SyncProcessor implements SyncEventsHandler {
         }
 
         @Override
-        public void reportEvent(String message, EventType eventType, NodeID peerId) {
-            logger.trace(message);
+        public void reportEvent(String message, EventType eventType, NodeID peerId, Object... arguments) {
+            logger.trace(message, arguments);
             peerScoringManager.recordEvent(peerId, null, eventType);
         }
 
